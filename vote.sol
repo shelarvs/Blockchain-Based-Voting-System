@@ -12,6 +12,7 @@ contract Database{
     struct citizen{
         address id;
         string assem;
+        bool isVoting;
     }
     
     struct candidate{
@@ -19,7 +20,6 @@ contract Database{
         string name;
         string assem;
         bool verify;
-        bool isVoted;
     }
     
     struct votes{
@@ -34,7 +34,7 @@ contract Database{
     
     
     event message(string msg);
-    event winner(string msg,address id);
+    event winner(string msg,address id, uint votes);
     
     constructor(){
         government = msg.sender;
@@ -50,6 +50,7 @@ contract Database{
         require(government != _id, "GOVERMENT CANNOT BE CITIZEN");
         voter[msg.sender].id = _id;
         voter[msg.sender].assem = _assem;
+      
         citizenData.push(_id);
         emit message("Voter Registered Successfully");
     }
@@ -81,8 +82,11 @@ contract Database{
     }
     
     function voteNow(address _can_id)public{
+        require(voter[msg.sender].isVoting == false,"Candidate Already Voted");
+        require(voter[msg.sender].id == msg.sender,"Voter Not Registered");
         vote[_can_id].candidate_id = _can_id;
         vote[_can_id].count +=1 ;       
+        voter[_can_id].isVoting = true;
         }
     
     
@@ -101,7 +105,7 @@ contract Database{
              }
          }
         
-        emit winner("winner", canWin);
+        emit winner("winner", canWin, high);
     }
     
     function viewCandiate(address _can_id) public view returns(address,string memory,string memory,bool){
